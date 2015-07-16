@@ -1,7 +1,6 @@
 package net.kechol.udacity.android.popularmovies.adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,10 +34,12 @@ public class MoviesAdapter extends BaseAdapter {
 
     public void addAll(List<Movie> data) {
         mList.addAll(data);
+        notifyDataSetChanged();
     }
 
     public void clear() {
         mList.clear();
+        notifyDataSetChanged();
     }
 
     @Override
@@ -49,7 +50,6 @@ public class MoviesAdapter extends BaseAdapter {
     @Override
     public Object getItem(int i) {
         return mList.get(i);
-//        return null;
     }
 
     @Override
@@ -73,7 +73,6 @@ public class MoviesAdapter extends BaseAdapter {
         }
 
         imageView = (ImageView) gridView.findViewById(R.id.main_grid_item_movie);
-        Log.d("MoviesAdapter", "img: " + m.getImageUrl());
         Picasso.with(mContext).load(m.getImageUrl()).into(imageView);
 
         return gridView;

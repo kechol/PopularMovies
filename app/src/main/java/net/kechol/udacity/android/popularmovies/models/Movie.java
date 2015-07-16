@@ -51,4 +51,9 @@ public class Movie implements Parcelable {
         if (release_date != null)
             dest.writeLong(release_date.getTime());
     }
+
+    @Override
+    public String toString() {
+        return "Movie: [" + id + "] " + title;
+    }
 }
