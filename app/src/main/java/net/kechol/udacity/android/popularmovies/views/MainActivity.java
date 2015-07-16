@@ -1,9 +1,11 @@
-package net.kechol.udacity.android.popularmovies;
+package net.kechol.udacity.android.popularmovies.views;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import net.kechol.udacity.android.popularmovies.R;
 
 
 public class MainActivity extends ActionBarActivity {
