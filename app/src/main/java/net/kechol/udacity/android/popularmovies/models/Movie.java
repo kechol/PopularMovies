@@ -56,4 +56,15 @@ public class Movie implements Parcelable {
     public String toString() {
         return "Movie: [" + id + "] " + title;
     }
+
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel source) {
+            return new Movie(source);
+        }
+
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 }

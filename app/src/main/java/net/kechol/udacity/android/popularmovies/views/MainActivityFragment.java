@@ -1,5 +1,6 @@
 package net.kechol.udacity.android.popularmovies.views;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -9,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import net.kechol.udacity.android.popularmovies.R;
 import net.kechol.udacity.android.popularmovies.adapters.MoviesAdapter;
@@ -57,7 +57,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Movie m = (Movie) adapterView.getItemAtPosition(i);
                 if (m != null) {
-                    Toast.makeText(getActivity(), m.title, Toast.LENGTH_SHORT).show();
+                    Bundle args = new Bundle();
+                    args.putParcelable("movie", m);
+
+                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                    intent.putExtras(args);
+                    startActivity(intent);
                 }
             }
         });
