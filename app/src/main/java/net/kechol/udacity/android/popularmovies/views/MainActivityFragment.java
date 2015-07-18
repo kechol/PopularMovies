@@ -5,7 +5,11 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -38,6 +42,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        setHasOptionsMenu(true);
 
         mMoviesAdapter = new MoviesAdapter(getActivity());
 
@@ -92,4 +97,30 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mMoviesList.clear();
         mMoviesAdapter.clear();
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_main_fragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        Log.d("MainActivityFragment", "id: " + id);
+
+        if (id == R.id.action_sort_popularity) {
+            mMoviesAdapter.sort(MoviesAdapter.SORT_POPULARITY);
+            return true;
+        }
+
+        if (id == R.id.action_sort_rating) {
+            mMoviesAdapter.sort(MoviesAdapter.SORT_RATING);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 }

@@ -14,6 +14,7 @@ public class Movie implements Parcelable {
 
     public int id;
     public double popularity;
+    public double vote_average;
     public String title;
     public String poster_path;
     public String overview;
@@ -26,6 +27,7 @@ public class Movie implements Parcelable {
     public Movie(Parcel src) {
         id = src.readInt();
         popularity = src.readDouble();
+        vote_average = src.readDouble();
         title = src.readString();
         poster_path = src.readString();
         overview = src.readString();
@@ -45,6 +47,7 @@ public class Movie implements Parcelable {
     public void writeToParcel(Parcel dest, int i) {
         dest.writeInt(id);
         dest.writeDouble(popularity);
+        dest.writeDouble(vote_average);
         dest.writeString(title);
         dest.writeString(poster_path);
         dest.writeString(overview);

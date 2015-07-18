@@ -13,12 +13,17 @@ import net.kechol.udacity.android.popularmovies.R;
 import net.kechol.udacity.android.popularmovies.models.Movie;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Created by ksuzuki on 7/16/15.
  */
 public class MoviesAdapter extends BaseAdapter {
+    public static final int SORT_POPULARITY = 0;
+    public static final int SORT_RATING = 1;
+
     private Context mContext;
     private List<Movie> mList;
 
@@ -40,6 +45,28 @@ public class MoviesAdapter extends BaseAdapter {
     public void clear() {
         mList.clear();
         notifyDataSetChanged();
+    }
+
+    public void sort(int sortId) {
+        if (sortId == SORT_POPULARITY) {
+            Collections.sort(mList, new Comparator<Movie>() {
+                @Override
+                public int compare(Movie t0, Movie t1) {
+                    return Double.valueOf(t1.popularity).compareTo(Double.valueOf(t0.popularity));
+                }
+            });
+            notifyDataSetChanged();
+        }
+
+        if (sortId == SORT_RATING) {
+            Collections.sort(mList, new Comparator<Movie>() {
+                @Override
+                public int compare(Movie t0, Movie t1) {
+                    return Double.valueOf(t1.vote_average).compareTo(Double.valueOf(t0.vote_average));
+                }
+            });
+            notifyDataSetChanged();
+        }
     }
 
     @Override

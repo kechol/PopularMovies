@@ -58,18 +58,6 @@
         android:layout_toRightOf="@+id/detail_cover_image"
         android:layout_toEndOf="@+id/detail_cover_image" />
 
-    <ToggleButton
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:background="@drawable/toggle_button_star"
-        android:textOn=""
-        android:textOff=""
-        android:id="@+id/detail_favorite_btn"
-        android:layout_below="@+id/detail_release_date"
-        android:layout_alignLeft="@+id/detail_release_date"
-        android:layout_alignStart="@+id/detail_release_date"
-        android:checked="false" />
-
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
