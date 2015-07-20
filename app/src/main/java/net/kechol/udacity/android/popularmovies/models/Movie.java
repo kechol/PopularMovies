@@ -12,6 +12,8 @@ public class Movie implements Parcelable {
     private static final String BASE_URL = "http://image.tmdb.org/t/p/";
     private static final String DEFAULT_SIZE = "w185";
 
+    public static final String PREF_FAVORITE_PREFIX = "movie_favorite_";
+
     public int id;
     public double popularity;
     public double vote_average;

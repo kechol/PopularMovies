@@ -28,8 +28,6 @@ import java.text.SimpleDateFormat;
  */
 public class DetailActivityFragment extends Fragment {
 
-    private final String PREF_FAVORITE_PREFIX = "movie_favorite_";
-
     private Movie mMovie;
     private SharedPreferences mSharedPref;
 
@@ -70,7 +68,7 @@ public class DetailActivityFragment extends Fragment {
             Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
         }
 
-        mSharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        mSharedPref = getActivity().getSharedPreferences(Movie.PREF_FAVORITE_PREFIX, Context.MODE_PRIVATE);
         return rootView;
     }
 
@@ -96,8 +94,10 @@ public class DetailActivityFragment extends Fragment {
 
         if (id == R.id.action_favorite) {
             if (toggleFavorite()) {
+                Toast.makeText(getActivity(), "Favorited.", Toast.LENGTH_SHORT).show();
                 item.setIcon(R.drawable.ic_favorite_white_24dp);
             } else {
+                Toast.makeText(getActivity(), "Unfavorited.", Toast.LENGTH_SHORT).show();
                 item.setIcon(R.drawable.ic_favorite_border_white_24dp);
             }
             return true;
@@ -107,19 +107,14 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private boolean checkFavorite() {
-        return mSharedPref.getBoolean(PREF_FAVORITE_PREFIX + mMovie.id, false);
+        return mSharedPref.getBoolean(Movie.PREF_FAVORITE_PREFIX + mMovie.id, false);
     }
 
     private boolean toggleFavorite() {
         boolean val = !checkFavorite();
         SharedPreferences.Editor editor = mSharedPref.edit();
-        editor.putBoolean(PREF_FAVORITE_PREFIX + mMovie.id, val);
+        editor.putBoolean(Movie.PREF_FAVORITE_PREFIX + mMovie.id, val);
         editor.commit();
-        if (val) {
-            Toast.makeText(getActivity(), "Favorited.", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getActivity(), "Unfavorited.", Toast.LENGTH_SHORT).show();
-        }
         return val;
     }
 }

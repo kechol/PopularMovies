@@ -1,6 +1,8 @@
 package net.kechol.udacity.android.popularmovies.views;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -31,6 +33,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     private MoviesAdapter mMoviesAdapter;
     private List<Movie> mMoviesList;
+    private List<Movie> mFavoriteMoviesList;
+
+    private SharedPreferences mSharedPref;
 
     private static final int LOADER_DISCOVER_MOVIE_ID = 0;
     private static final String STATE_MOVIES_LIST = "STATE_MOVIES_LIST";
@@ -72,6 +77,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             }
         });
 
+        mSharedPref = getActivity().getSharedPreferences(Movie.PREF_FAVORITE_PREFIX, Context.MODE_PRIVATE);
+
         return rootView;
     }
 
@@ -108,19 +115,41 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        Log.d("MainActivityFragment", "id: " + id);
-
         if (id == R.id.action_sort_popularity) {
+            // FIXME: not efficient
+            mMoviesAdapter.clear();
+            mMoviesAdapter.addAll(mMoviesList);
             mMoviesAdapter.sort(MoviesAdapter.SORT_POPULARITY);
             return true;
         }
 
         if (id == R.id.action_sort_rating) {
+            // FIXME: not efficient
+            mMoviesAdapter.clear();
+            mMoviesAdapter.addAll(mMoviesList);
             mMoviesAdapter.sort(MoviesAdapter.SORT_RATING);
             return true;
         }
 
+        if (id == R.id.action_sort_favorite) {
+            if (mFavoriteMoviesList == null) {
+                mFavoriteMoviesList = new ArrayList<Movie>();
+                for (Movie m : mMoviesList) {
+                    if (checkFavorite(m.id)) mFavoriteMoviesList.add(m);
+                }
+            }
+            // FIXME: not efficient
+            mMoviesAdapter.clear();
+            mMoviesAdapter.addAll(mFavoriteMoviesList);
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean checkFavorite(int id) {
+        Log.d("MainActivityFragment", "favorite?:" + mSharedPref.getBoolean(Movie.PREF_FAVORITE_PREFIX + id, false));
+        return mSharedPref.getBoolean(Movie.PREF_FAVORITE_PREFIX + id, false);
     }
 
 }
