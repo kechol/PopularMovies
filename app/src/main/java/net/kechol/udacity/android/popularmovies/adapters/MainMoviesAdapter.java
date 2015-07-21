@@ -20,19 +20,19 @@ import java.util.List;
 /**
  * Created by ksuzuki on 7/16/15.
  */
-public class MoviesAdapter extends BaseAdapter {
+public class MainMoviesAdapter extends BaseAdapter {
     public static final int SORT_POPULARITY = 0;
     public static final int SORT_RATING = 1;
 
     private Context mContext;
     private List<Movie> mList;
 
-    public MoviesAdapter(Context context) {
+    public MainMoviesAdapter(Context context) {
         mContext = context;
         mList = new ArrayList<Movie>();
     }
 
-    public MoviesAdapter(Context context, List<Movie> data) {
+    public MainMoviesAdapter(Context context, List<Movie> data) {
         mContext = context;
         mList = data;
     }

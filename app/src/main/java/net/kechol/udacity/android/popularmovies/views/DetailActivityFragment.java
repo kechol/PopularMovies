@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,14 +21,19 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import net.kechol.udacity.android.popularmovies.R;
+import net.kechol.udacity.android.popularmovies.adapters.DetailVideosAdapter;
+import net.kechol.udacity.android.popularmovies.loaders.MovieVideosLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
+import net.kechol.udacity.android.popularmovies.models.Video;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment {
+public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Video>> {
 
     private Movie mMovie;
     private SharedPreferences mSharedPref;
@@ -36,8 +43,16 @@ public class DetailActivityFragment extends Fragment {
     private TextView mReleaseDateView;
     private TextView mPopularityView;
     private ImageView mCoverImageView;
-    private ListView mTracksListView;
+    private ListView mVideosListView;
     private ListView mReviewsListView;
+
+    private DetailVideosAdapter mVideosAdapter;
+    private List<Video> mVideosList;
+
+
+    private static final int LOADER_MOVIE_VIDEOS_ID = 0;
+    private static final String STATE_DETAIL_MOVIE = "STATE_DETAIL_MOVIE";
+    private static final String STATE_DETAIL_VIDEOS_LIST = "STATE_DETAIL_VIDEOS_LIST";
 
     public DetailActivityFragment() {
     }
@@ -53,23 +68,58 @@ public class DetailActivityFragment extends Fragment {
         mReleaseDateView = (TextView) rootView.findViewById(R.id.detail_release_date);
         mPopularityView = (TextView) rootView.findViewById(R.id.detail_popularity);
         mCoverImageView = (ImageView) rootView.findViewById(R.id.detail_cover_image);
-        mTracksListView = (ListView) rootView.findViewById(R.id.detail_list_tracks);
+        mVideosListView = (ListView) rootView.findViewById(R.id.detail_list_videos);
         mReviewsListView = (ListView) rootView.findViewById(R.id.detail_list_reviews);
 
-        Bundle args = getArguments();
-        if (args != null) {
-            mMovie = args.getParcelable("movie");
-            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+        mVideosAdapter = new DetailVideosAdapter(getActivity());
+        mVideosListView.setAdapter(mVideosAdapter);
 
-            mTitleView.setText(mMovie.title);
-            mOverviewView.setText(mMovie.overview);
-            mReleaseDateView.setText(df.format(mMovie.release_date));
-            mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
-            Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
+        Bundle args = getArguments();
+        if (args != null && savedInstanceState == null) {
+            mMovie = args.getParcelable("movie");
+            getLoaderManager().initLoader(LOADER_MOVIE_VIDEOS_ID, args, this).forceLoad();
+        } else if (savedInstanceState != null) {
+            mMovie = savedInstanceState.getParcelable(STATE_DETAIL_MOVIE);
+            mVideosList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_VIDEOS_LIST);
+            mVideosAdapter.addAll(mVideosList);
         }
 
+        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
         mSharedPref = getActivity().getSharedPreferences(Movie.PREF_FAVORITE_PREFIX, Context.MODE_PRIVATE);
+
+        mTitleView.setText(mMovie.title);
+        mOverviewView.setText(mMovie.overview);
+        mReleaseDateView.setText(df.format(mMovie.release_date));
+        mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
+        Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
+
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(STATE_DETAIL_MOVIE, mMovie);
+        outState.putParcelableArrayList(STATE_DETAIL_VIDEOS_LIST, (ArrayList) mVideosList);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public Loader<List<Video>> onCreateLoader(int id, Bundle args) {
+        Movie movie = args.getParcelable("movie");
+        return new MovieVideosLoader(getActivity(), movie.id);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Video>> loader, List<Video> data) {
+        mVideosList = data;
+        mVideosAdapter.addAll(data);
+        Log.d("DetailActivityFragment", "Vidos: " + mVideosList.toString());
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Video>> loader) {
+        mVideosList.clear();
+        mVideosAdapter.clear();
     }
 
     @Override
@@ -89,8 +139,6 @@ public class DetailActivityFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        Log.d("MainActivityFragment", "id: " + id);
 
         if (id == R.id.action_favorite) {
             if (toggleFavorite()) {

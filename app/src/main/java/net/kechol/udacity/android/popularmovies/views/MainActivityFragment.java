@@ -18,7 +18,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import net.kechol.udacity.android.popularmovies.R;
-import net.kechol.udacity.android.popularmovies.adapters.MoviesAdapter;
+import net.kechol.udacity.android.popularmovies.adapters.MainMoviesAdapter;
 import net.kechol.udacity.android.popularmovies.loaders.DiscoverMovieLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
 
@@ -31,14 +31,14 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>> {
 
-    private MoviesAdapter mMoviesAdapter;
+    private MainMoviesAdapter mMoviesAdapter;
     private List<Movie> mMoviesList;
     private List<Movie> mFavoriteMoviesList;
 
     private SharedPreferences mSharedPref;
 
     private static final int LOADER_DISCOVER_MOVIE_ID = 0;
-    private static final String STATE_MOVIES_LIST = "STATE_MOVIES_LIST";
+    private static final String STATE_MAIN_MOVIES_LIST = "STATE_MAIN_MOVIES_LIST";
 
     public MainActivityFragment() {
     }
@@ -49,10 +49,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         setHasOptionsMenu(true);
 
-        mMoviesAdapter = new MoviesAdapter(getActivity());
+        mMoviesAdapter = new MainMoviesAdapter(getActivity());
 
         if (savedInstanceState != null) {
-            mMoviesList = savedInstanceState.getParcelableArrayList(STATE_MOVIES_LIST);
+            mMoviesList = savedInstanceState.getParcelableArrayList(STATE_MAIN_MOVIES_LIST);
             mMoviesAdapter.addAll(mMoviesList);
         } else {
             Bundle args = new Bundle();
@@ -84,7 +84,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList(STATE_MOVIES_LIST, (ArrayList) mMoviesList);
+        outState.putParcelableArrayList(STATE_MAIN_MOVIES_LIST, (ArrayList) mMoviesList);
         super.onSaveInstanceState(outState);
     }
 
@@ -119,7 +119,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             // FIXME: not efficient
             mMoviesAdapter.clear();
             mMoviesAdapter.addAll(mMoviesList);
-            mMoviesAdapter.sort(MoviesAdapter.SORT_POPULARITY);
+            mMoviesAdapter.sort(MainMoviesAdapter.SORT_POPULARITY);
             return true;
         }
 
@@ -127,7 +127,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             // FIXME: not efficient
             mMoviesAdapter.clear();
             mMoviesAdapter.addAll(mMoviesList);
-            mMoviesAdapter.sort(MoviesAdapter.SORT_RATING);
+            mMoviesAdapter.sort(MainMoviesAdapter.SORT_RATING);
             return true;
         }
 
