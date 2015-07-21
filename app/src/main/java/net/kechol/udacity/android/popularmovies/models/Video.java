@@ -31,9 +31,13 @@ public class Video implements Parcelable {
         type = src.readString();
     }
 
-    public String getYoutubeURL() {
-        if (type != "YouTube") return null;
-        return YOUTUBE_BASE_URL + key;
+    public String getVideoURL() {
+        if ("YouTube".equals(site)) {
+            return YOUTUBE_BASE_URL + key;
+        } else {
+            // FIXME: No support for another site
+            return null;
+        }
     }
 
     @Override

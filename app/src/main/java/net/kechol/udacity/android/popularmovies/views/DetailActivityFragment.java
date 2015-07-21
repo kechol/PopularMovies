@@ -1,7 +1,9 @@
 package net.kechol.udacity.android.popularmovies.views;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -13,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -92,6 +95,15 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         mReleaseDateView.setText(df.format(mMovie.release_date));
         mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
         Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
+
+        mVideosListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Video v = (Video) adapterView.getItemAtPosition(i);
+                Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(v.getVideoURL()));
+                startActivity(youtubeIntent);
+            }
+        });
 
         return rootView;
     }
