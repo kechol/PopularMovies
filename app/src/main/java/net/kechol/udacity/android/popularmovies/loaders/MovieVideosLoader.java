@@ -40,8 +40,6 @@ public class MovieVideosLoader extends AsyncTaskLoader<List<Video>> {
     private List<Video> getVideosFromJson(String jsonStr) {
         List<Video> videos = new ArrayList<Video>();
 
-        Log.d("MovieVideosLoader", jsonStr);
-
         try {
             JSONObject json = new JSONObject(jsonStr);
             JSONArray results = json.getJSONArray("results");

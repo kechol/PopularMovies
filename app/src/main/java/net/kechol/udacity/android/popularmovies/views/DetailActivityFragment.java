@@ -5,10 +5,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,9 +25,12 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import net.kechol.udacity.android.popularmovies.R;
+import net.kechol.udacity.android.popularmovies.adapters.DetailReviewsAdapter;
 import net.kechol.udacity.android.popularmovies.adapters.DetailVideosAdapter;
+import net.kechol.udacity.android.popularmovies.loaders.MovieReviewsLoader;
 import net.kechol.udacity.android.popularmovies.loaders.MovieVideosLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
+import net.kechol.udacity.android.popularmovies.models.Review;
 import net.kechol.udacity.android.popularmovies.models.Video;
 
 import java.text.SimpleDateFormat;
@@ -36,7 +40,7 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Video>> {
+public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Parcelable>> {
 
     private Movie mMovie;
     private SharedPreferences mSharedPref;
@@ -50,12 +54,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private ListView mReviewsListView;
 
     private DetailVideosAdapter mVideosAdapter;
+    private DetailReviewsAdapter mReviewsAdapter;
     private List<Video> mVideosList;
+    private List<Review> mReviewsList;
 
 
     private static final int LOADER_MOVIE_VIDEOS_ID = 0;
+    private static final int LOADER_MOVIE_REVIEWS_ID = 1;
     private static final String STATE_DETAIL_MOVIE = "STATE_DETAIL_MOVIE";
     private static final String STATE_DETAIL_VIDEOS_LIST = "STATE_DETAIL_VIDEOS_LIST";
+    private static final String STATE_DETAIL_REVIEWS_LIST = "STATE_DETAIL_REVIEWS_LIST";
 
     public DetailActivityFragment() {
     }
@@ -77,14 +85,20 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         mVideosAdapter = new DetailVideosAdapter(getActivity());
         mVideosListView.setAdapter(mVideosAdapter);
 
+        mReviewsAdapter = new DetailReviewsAdapter(getActivity());
+        mReviewsListView.setAdapter(mReviewsAdapter);
+
         Bundle args = getArguments();
         if (args != null && savedInstanceState == null) {
             mMovie = args.getParcelable("movie");
             getLoaderManager().initLoader(LOADER_MOVIE_VIDEOS_ID, args, this).forceLoad();
+            getLoaderManager().initLoader(LOADER_MOVIE_REVIEWS_ID, args, this).forceLoad();
         } else if (savedInstanceState != null) {
             mMovie = savedInstanceState.getParcelable(STATE_DETAIL_MOVIE);
             mVideosList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_VIDEOS_LIST);
             mVideosAdapter.addAll(mVideosList);
+            mReviewsList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_REVIEWS_LIST);
+            mReviewsAdapter.addAll(mReviewsList);
         }
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -112,26 +126,53 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(STATE_DETAIL_MOVIE, mMovie);
         outState.putParcelableArrayList(STATE_DETAIL_VIDEOS_LIST, (ArrayList) mVideosList);
+        outState.putParcelableArrayList(STATE_DETAIL_REVIEWS_LIST, (ArrayList) mReviewsList);
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    public Loader<List<Video>> onCreateLoader(int id, Bundle args) {
+    public Loader<List<Parcelable>> onCreateLoader(int id, Bundle args) {
         Movie movie = args.getParcelable("movie");
-        return new MovieVideosLoader(getActivity(), movie.id);
+
+        if (id == LOADER_MOVIE_VIDEOS_ID) {
+            return (AsyncTaskLoader) new MovieVideosLoader(getActivity(), movie.id);
+        }
+
+        if (id == LOADER_MOVIE_REVIEWS_ID) {
+            return (AsyncTaskLoader) new MovieReviewsLoader(getActivity(), movie.id);
+        }
+
+        return null;
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Video>> loader, List<Video> data) {
-        mVideosList = data;
-        mVideosAdapter.addAll(data);
-        Log.d("DetailActivityFragment", "Vidos: " + mVideosList.toString());
+    public void onLoadFinished(Loader<List<Parcelable>> loader, List<Parcelable> data) {
+        int id = loader.getId();
+
+        if (id == LOADER_MOVIE_VIDEOS_ID) {
+            mVideosList = (ArrayList) data;
+            mVideosAdapter.addAll((ArrayList) data);
+        }
+
+        if (id == LOADER_MOVIE_REVIEWS_ID) {
+            mReviewsList = (ArrayList) data;
+            mReviewsAdapter.addAll((ArrayList) data);
+        }
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Video>> loader) {
-        mVideosList.clear();
-        mVideosAdapter.clear();
+    public void onLoaderReset(Loader<List<Parcelable>> loader) {
+        int id = loader.getId();
+
+        if (id == LOADER_MOVIE_VIDEOS_ID) {
+            mVideosList.clear();
+            mVideosAdapter.clear();
+        }
+
+        if (id == LOADER_MOVIE_REVIEWS_ID) {
+            mReviewsList.clear();
+            mReviewsAdapter.clear();
+        }
     }
 
     @Override

@@ -55,8 +55,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             mMoviesList = savedInstanceState.getParcelableArrayList(STATE_MAIN_MOVIES_LIST);
             mMoviesAdapter.addAll(mMoviesList);
         } else {
-            Bundle args = new Bundle();
-            getLoaderManager().initLoader(LOADER_DISCOVER_MOVIE_ID, args, MainActivityFragment.this).forceLoad();
+            getLoaderManager().initLoader(LOADER_DISCOVER_MOVIE_ID, new Bundle(), MainActivityFragment.this).forceLoad();
         }
 
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.main_grid_movies);
