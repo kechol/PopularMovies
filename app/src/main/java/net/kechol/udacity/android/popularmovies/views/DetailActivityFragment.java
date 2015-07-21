@@ -18,15 +18,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
 import net.kechol.udacity.android.popularmovies.R;
-import net.kechol.udacity.android.popularmovies.adapters.DetailReviewsAdapter;
-import net.kechol.udacity.android.popularmovies.adapters.DetailVideosAdapter;
 import net.kechol.udacity.android.popularmovies.loaders.MovieReviewsLoader;
 import net.kechol.udacity.android.popularmovies.loaders.MovieVideosLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
@@ -50,11 +48,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private TextView mReleaseDateView;
     private TextView mPopularityView;
     private ImageView mCoverImageView;
-    private ListView mVideosListView;
-    private ListView mReviewsListView;
-
-    private DetailVideosAdapter mVideosAdapter;
-    private DetailReviewsAdapter mReviewsAdapter;
+    private LinearLayout mLinearView;
     private List<Video> mVideosList;
     private List<Review> mReviewsList;
 
@@ -74,19 +68,15 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         setHasOptionsMenu(true);
 
+        mVideosList = new ArrayList<Video>();
+        mReviewsList = new ArrayList<Review>();
+
         mTitleView = (TextView) rootView.findViewById(R.id.detail_title);
         mOverviewView = (TextView) rootView.findViewById(R.id.detail_overview);
         mReleaseDateView = (TextView) rootView.findViewById(R.id.detail_release_date);
         mPopularityView = (TextView) rootView.findViewById(R.id.detail_popularity);
         mCoverImageView = (ImageView) rootView.findViewById(R.id.detail_cover_image);
-        mVideosListView = (ListView) rootView.findViewById(R.id.detail_list_videos);
-        mReviewsListView = (ListView) rootView.findViewById(R.id.detail_list_reviews);
-
-        mVideosAdapter = new DetailVideosAdapter(getActivity());
-        mVideosListView.setAdapter(mVideosAdapter);
-
-        mReviewsAdapter = new DetailReviewsAdapter(getActivity());
-        mReviewsListView.setAdapter(mReviewsAdapter);
+        mLinearView = (LinearLayout) rootView.findViewById(R.id.detail_linear_view);
 
         Bundle args = getArguments();
         if (args != null && savedInstanceState == null) {
@@ -96,9 +86,15 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         } else if (savedInstanceState != null) {
             mMovie = savedInstanceState.getParcelable(STATE_DETAIL_MOVIE);
             mVideosList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_VIDEOS_LIST);
-            mVideosAdapter.addAll(mVideosList);
             mReviewsList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_REVIEWS_LIST);
-            mReviewsAdapter.addAll(mReviewsList);
+
+            for (Video v : mVideosList) {
+                mLinearView.addView(getVideoView(v, inflater));
+            }
+
+            for (Review r : mReviewsList) {
+                mLinearView.addView(getReviewView(r, inflater));
+            }
         }
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -110,14 +106,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
         Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
 
-        mVideosListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Video v = (Video) adapterView.getItemAtPosition(i);
-                Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(v.getVideoURL()));
-                startActivity(youtubeIntent);
-            }
-        });
 
         return rootView;
     }
@@ -148,15 +136,22 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onLoadFinished(Loader<List<Parcelable>> loader, List<Parcelable> data) {
         int id = loader.getId();
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
 
         if (id == LOADER_MOVIE_VIDEOS_ID) {
             mVideosList = (ArrayList) data;
-            mVideosAdapter.addAll((ArrayList) data);
+
+            for (Video v : mVideosList) {
+                mLinearView.addView(getVideoView(v, inflater));
+            }
         }
 
         if (id == LOADER_MOVIE_REVIEWS_ID) {
             mReviewsList = (ArrayList) data;
-            mReviewsAdapter.addAll((ArrayList) data);
+
+            for (Review r : mReviewsList) {
+                mLinearView.addView(getReviewView(r, inflater));
+            }
         }
     }
 
@@ -166,12 +161,10 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
         if (id == LOADER_MOVIE_VIDEOS_ID) {
             mVideosList.clear();
-            mVideosAdapter.clear();
         }
 
         if (id == LOADER_MOVIE_REVIEWS_ID) {
             mReviewsList.clear();
-            mReviewsAdapter.clear();
         }
     }
 
@@ -217,5 +210,37 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         editor.putBoolean(Movie.PREF_FAVORITE_PREFIX + mMovie.id, val);
         editor.commit();
         return val;
+    }
+
+    public View getVideoView(Video video, LayoutInflater inflater) {
+        View view = inflater.inflate(R.layout.list_item_video_detail, null);
+
+        TextView nameView = (TextView) view.findViewById(R.id.detail_list_videos_name);
+        nameView.setText(video.name);
+
+        view.setTag(R.string.tag_video_item, video);
+
+        view.setOnClickListener(new AdapterView.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Video v = (Video) view.getTag(R.string.tag_video_item);
+                Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(v.getVideoURL()));
+                startActivity(youtubeIntent);
+            }
+        });
+
+        return view;
+    }
+
+    public View getReviewView(Review review, LayoutInflater inflater) {
+        View view = inflater.inflate(R.layout.list_item_review_detail, null);
+
+        TextView authorView = (TextView) view.findViewById(R.id.detail_list_reviews_author);
+        authorView.setText(review.author);
+
+        TextView contentView = (TextView) view.findViewById(R.id.detail_list_reviews_content);
+        contentView.setText(review.content);
+
+        return view;
     }
 }
