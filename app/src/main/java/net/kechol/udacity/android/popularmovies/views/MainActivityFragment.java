@@ -1,7 +1,6 @@
 package net.kechol.udacity.android.popularmovies.views;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -40,6 +39,11 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private static final int LOADER_DISCOVER_MOVIE_ID = 0;
     private static final String STATE_MAIN_MOVIES_LIST = "STATE_MAIN_MOVIES_LIST";
 
+
+    public interface Callback {
+        public void onItemSelected(Bundle args);
+    }
+
     public MainActivityFragment() {
     }
 
@@ -68,10 +72,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 if (m != null) {
                     Bundle args = new Bundle();
                     args.putParcelable("movie", m);
-
-                    Intent intent = new Intent(getActivity(), DetailActivity.class);
-                    intent.putExtras(args);
-                    startActivity(intent);
+                    ((Callback) getActivity()).onItemSelected(args);
                 }
             }
         });

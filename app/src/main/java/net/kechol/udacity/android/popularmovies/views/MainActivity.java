@@ -1,5 +1,6 @@
 package net.kechol.udacity.android.popularmovies.views;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -8,12 +9,43 @@ import android.view.MenuItem;
 import net.kechol.udacity.android.popularmovies.R;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements MainActivityFragment.Callback {
+
+    private boolean mTwoPane;
+    private final String TAG_DETAIL_FRAGMENT = "TAG_DETAIL_FRAGMENT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (findViewById(R.id.detail_container) != null) {
+            mTwoPane = true;
+
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.detail_container, new DetailActivityFragment(), TAG_DETAIL_FRAGMENT)
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
+        }
+    }
+
+    @Override
+    public void onItemSelected(Bundle args) {
+        if (mTwoPane) {
+            DetailActivityFragment fragment = new DetailActivityFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_container, fragment, TAG_DETAIL_FRAGMENT)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtras(args);
+            startActivity(intent);
+        }
     }
 
     @Override

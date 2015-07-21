@@ -97,15 +97,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             }
         }
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
-        mSharedPref = getActivity().getSharedPreferences(Movie.PREF_FAVORITE_PREFIX, Context.MODE_PRIVATE);
+        if (mMovie != null) {
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+            mSharedPref = getActivity().getSharedPreferences(Movie.PREF_FAVORITE_PREFIX, Context.MODE_PRIVATE);
 
-        mTitleView.setText(mMovie.title);
-        mOverviewView.setText(mMovie.overview);
-        mReleaseDateView.setText(df.format(mMovie.release_date));
-        mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
-        Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
-
+            mTitleView.setText(mMovie.title);
+            mOverviewView.setText(mMovie.overview);
+            mReleaseDateView.setText(df.format(mMovie.release_date));
+            mPopularityView.setText(String.valueOf(mMovie.vote_average) + " / 10");
+            Picasso.with(getActivity()).load(mMovie.getImageUrl()).into(mCoverImageView);
+        }
 
         return rootView;
     }
@@ -171,10 +172,12 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        if (mMovie == null) return;
+
         inflater.inflate(R.menu.menu_detail_fragment, menu);
 
         MenuItem favoriteBtn = (MenuItem) menu.findItem(R.id.action_favorite);
-        if (checkFavorite()) {
+        if (checkFavorite(mMovie.id)) {
             favoriteBtn.setIcon(R.drawable.ic_favorite_white_24dp);
         } else {
             favoriteBtn.setIcon(R.drawable.ic_favorite_border_white_24dp);
@@ -187,7 +190,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         int id = item.getItemId();
 
         if (id == R.id.action_favorite) {
-            if (toggleFavorite()) {
+            if (toggleFavorite(mMovie.id)) {
                 Toast.makeText(getActivity(), "Favorited.", Toast.LENGTH_SHORT).show();
                 item.setIcon(R.drawable.ic_favorite_white_24dp);
             } else {
@@ -200,14 +203,14 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean checkFavorite() {
-        return mSharedPref.getBoolean(Movie.PREF_FAVORITE_PREFIX + mMovie.id, false);
+    private boolean checkFavorite(int id) {
+        return mSharedPref.getBoolean(Movie.PREF_FAVORITE_PREFIX + id, false);
     }
 
-    private boolean toggleFavorite() {
-        boolean val = !checkFavorite();
+    private boolean toggleFavorite(int id) {
+        boolean val = !checkFavorite(id);
         SharedPreferences.Editor editor = mSharedPref.edit();
-        editor.putBoolean(Movie.PREF_FAVORITE_PREFIX + mMovie.id, val);
+        editor.putBoolean(Movie.PREF_FAVORITE_PREFIX + id, val);
         editor.commit();
         return val;
     }
