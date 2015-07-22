@@ -2,7 +2,6 @@ package net.kechol.udacity.android.popularmovies.loaders;
 
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
@@ -13,12 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -53,6 +46,7 @@ public class DiscoverMovieLoader extends AsyncTaskLoader<List<Movie>> {
 
     private List<Movie> getMoviesFromJson(String jsonStr) {
         List<Movie> movies = new ArrayList<Movie>();
+        if (jsonStr == null) return movies;
 
         try {
             JSONObject json = new JSONObject(jsonStr);
