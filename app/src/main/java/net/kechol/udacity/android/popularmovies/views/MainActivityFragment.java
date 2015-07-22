@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,20 +13,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import net.kechol.udacity.android.popularmovies.R;
 import net.kechol.udacity.android.popularmovies.adapters.MainMoviesAdapter;
-import net.kechol.udacity.android.popularmovies.loaders.DiscoverMovieLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
+import net.kechol.udacity.android.popularmovies.models.MovieResult;
+import net.kechol.udacity.android.popularmovies.utils.TmdbApi;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
 
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>> {
+public class MainActivityFragment extends Fragment {
 
     private MainMoviesAdapter mMoviesAdapter;
     private List<Movie> mMoviesList;
@@ -59,7 +64,25 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             mMoviesList = savedInstanceState.getParcelableArrayList(STATE_MAIN_MOVIES_LIST);
             mMoviesAdapter.addAll(mMoviesList);
         } else {
-            getLoaderManager().initLoader(LOADER_DISCOVER_MOVIE_ID, new Bundle(), MainActivityFragment.this).forceLoad();
+            RestAdapter restAdapter = new RestAdapter.Builder()
+                    .setEndpoint(TmdbApi.API_BASE_URL)
+                    .setConverter(new GsonConverter(Movie.GSON_CONVERTER))
+                    .build();
+            TmdbApi api = restAdapter.create(TmdbApi.class);
+
+            api.getDiscoverMovies(TmdbApi.API_KEY, "popularity.desc", new retrofit.Callback<MovieResult>() {
+                @Override
+                public void success(MovieResult apiResult, Response response) {
+                    mMoviesList = apiResult.results;
+                    mMoviesAdapter.addAll(mMoviesList);
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e("TmdbApi", error.getMessage());
+                    Toast.makeText(getActivity(), "Cannot load movies...", Toast.LENGTH_LONG).show();
+                }
+            });
         }
 
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.main_grid_movies);
@@ -86,23 +109,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(STATE_MAIN_MOVIES_LIST, (ArrayList) mMoviesList);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
-        return new DiscoverMovieLoader(getActivity());
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
-        mMoviesList = data;
-        mMoviesAdapter.addAll(mMoviesList);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<Movie>> loader) {
-        mMoviesList.clear();
-        mMoviesAdapter.clear();
     }
 
     @Override

@@ -5,11 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,20 +22,25 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import net.kechol.udacity.android.popularmovies.R;
-import net.kechol.udacity.android.popularmovies.loaders.MovieReviewsLoader;
-import net.kechol.udacity.android.popularmovies.loaders.MovieVideosLoader;
 import net.kechol.udacity.android.popularmovies.models.Movie;
 import net.kechol.udacity.android.popularmovies.models.Review;
+import net.kechol.udacity.android.popularmovies.models.ReviewResult;
 import net.kechol.udacity.android.popularmovies.models.Video;
+import net.kechol.udacity.android.popularmovies.models.VideoResult;
+import net.kechol.udacity.android.popularmovies.utils.TmdbApi;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Parcelable>> {
+public class DetailActivityFragment extends Fragment {
 
     private Movie mMovie;
     private SharedPreferences mSharedPref;
@@ -63,7 +65,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         setHasOptionsMenu(true);
@@ -81,8 +83,44 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         Bundle args = getArguments();
         if (args != null && savedInstanceState == null) {
             mMovie = args.getParcelable("movie");
-            getLoaderManager().initLoader(LOADER_MOVIE_VIDEOS_ID, args, this).forceLoad();
-            getLoaderManager().initLoader(LOADER_MOVIE_REVIEWS_ID, args, this).forceLoad();
+
+            RestAdapter restAdapter = new RestAdapter.Builder()
+                    .setEndpoint(TmdbApi.API_BASE_URL)
+                    .build();
+            TmdbApi api = restAdapter.create(TmdbApi.class);
+
+            api.getMovieVideos(mMovie.id, TmdbApi.API_KEY, new retrofit.Callback<VideoResult>() {
+                @Override
+                public void success(VideoResult apiResult, Response response) {
+                    mVideosList = apiResult.results;
+                    for (Video v : mVideosList) {
+                        mLinearView.addView(getVideoView(v, inflater));
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e("TmdbApi", error.getMessage());
+                    Toast.makeText(getActivity(), "Cannot load videos...", Toast.LENGTH_LONG).show();
+                }
+            });
+
+            api.getMovieReviews(mMovie.id, TmdbApi.API_KEY, new retrofit.Callback<ReviewResult>() {
+                @Override
+                public void success(ReviewResult apiResult, Response response) {
+                    mReviewsList = apiResult.results;
+                    for (Review r : mReviewsList) {
+                        mLinearView.addView(getReviewView(r, inflater));
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e("TmdbApi", error.getMessage());
+                    Toast.makeText(getActivity(), "Cannot load reviews...", Toast.LENGTH_LONG).show();
+                }
+            });
+
         } else if (savedInstanceState != null) {
             mMovie = savedInstanceState.getParcelable(STATE_DETAIL_MOVIE);
             mVideosList = savedInstanceState.getParcelableArrayList(STATE_DETAIL_VIDEOS_LIST);
@@ -117,56 +155,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         outState.putParcelableArrayList(STATE_DETAIL_VIDEOS_LIST, (ArrayList) mVideosList);
         outState.putParcelableArrayList(STATE_DETAIL_REVIEWS_LIST, (ArrayList) mReviewsList);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public Loader<List<Parcelable>> onCreateLoader(int id, Bundle args) {
-        Movie movie = args.getParcelable("movie");
-
-        if (id == LOADER_MOVIE_VIDEOS_ID) {
-            return (AsyncTaskLoader) new MovieVideosLoader(getActivity(), movie.id);
-        }
-
-        if (id == LOADER_MOVIE_REVIEWS_ID) {
-            return (AsyncTaskLoader) new MovieReviewsLoader(getActivity(), movie.id);
-        }
-
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<Parcelable>> loader, List<Parcelable> data) {
-        int id = loader.getId();
-        LayoutInflater inflater = LayoutInflater.from(getActivity());
-
-        if (id == LOADER_MOVIE_VIDEOS_ID) {
-            mVideosList = (ArrayList) data;
-
-            for (Video v : mVideosList) {
-                mLinearView.addView(getVideoView(v, inflater));
-            }
-        }
-
-        if (id == LOADER_MOVIE_REVIEWS_ID) {
-            mReviewsList = (ArrayList) data;
-
-            for (Review r : mReviewsList) {
-                mLinearView.addView(getReviewView(r, inflater));
-            }
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<Parcelable>> loader) {
-        int id = loader.getId();
-
-        if (id == LOADER_MOVIE_VIDEOS_ID) {
-            mVideosList.clear();
-        }
-
-        if (id == LOADER_MOVIE_REVIEWS_ID) {
-            mReviewsList.clear();
-        }
     }
 
     @Override

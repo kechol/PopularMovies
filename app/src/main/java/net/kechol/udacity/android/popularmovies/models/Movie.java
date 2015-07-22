@@ -3,6 +3,9 @@ package net.kechol.udacity.android.popularmovies.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.Date;
 
 /**
@@ -13,6 +16,8 @@ public class Movie implements Parcelable {
     private static final String DEFAULT_SIZE = "w185";
 
     public static final String PREF_FAVORITE_PREFIX = "movie_favorite_";
+
+    public static final Gson GSON_CONVERTER = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
     public int id;
     public double popularity;
